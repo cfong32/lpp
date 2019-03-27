@@ -1,0 +1,3 @@
+{"grade": ["chapter_grade", "predicted_final_exam_grade"],
+ "navigation":["seq_next", "seq_next_post", "seq_prev", "seq_prev_post"],
+ "video":["load_video", "load_video_post", "play_video", "play_video_post", "pause_video", "pause_video_post", "stop_video", "stop_video_post", "seek_forward", "seek_forward_post", "seek_backward", "seek_backward_post", "show_transcript",  "show_transcript_post", "hide_transcript", "hide_transcript_post"]}

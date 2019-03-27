@@ -1,0 +1,24 @@
+FEATURE NAME,SPECIFICATION
+chapter-grade, observed chapter grade in current chapter 
+predicted-final-exam-grade,predicted final exam grade in current chapter
+predicted-current-chapter-grade,predicted chapter grade in current chapter
+seq-next,# of events of navigating to next vertical (slide) before assignment
+seq-next-post,# of events of navigating to next vertical (slide) after assignment
+seq-prev,# of events of navigating to previous vertical (slide) before assignment
+seq-prev-post, # of events of navigating to previous vertical (slide) after assignment
+load-video,# of events of loading video before assignment
+load-video-post,# of events of loading video after assignment
+play-video,# of events of playing video before assignment
+play-video-post,# of events of playing video after assignment
+pause-video,# of events of pausing video before assignment
+pause-video-post,# of events of pausing video after assignment
+stop-video,# of events of stopping video before assignment
+stop-video-post,# of events of stopping video after assignment
+seek-forward,# of events of seeking video forward before assignment
+seek-forward-post,# of events of seeking video forward after assignment
+seek-backward,# of events of seeking video backward before assignment
+seek-backward-post,# of events of seeking video backward after assignment
+show-transcript,# of events of showing video transcript before assignment
+show-transcript-post,# of events of showing video transcript after assignment
+hide-transcript,# of events of hidding video transcript before assignment
+hide-transcript-post,# of events of hidding video transcript after assignment

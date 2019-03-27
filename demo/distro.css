@@ -1,0 +1,159 @@
+/* Axis-frame */
+.axis-frame rect {
+    stroke: 1px;
+}
+
+/* tooltips */
+div.tooltip {
+    position: absolute;
+    text-align: left;
+    padding: 3px;
+    font: 12px sans-serif;
+    background: lightcyan;
+    border: 0px;
+    border-radius: 1px;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+/*Slider*/
+svg {
+    border: 1px solid gray;     
+    /* stroke: #165035;*/
+    stroke: #000000;
+    stroke-width: '1px';
+    opacity: 0.8;
+}
+
+text {
+    font-size: 12px;     
+    fill: #000000;
+    /*font-family: 'monospace';*/
+    font-familay: "Times New Roman";
+    stroke-width: 0;
+}
+
+.ticks {
+    font: 10px sans-serif;
+}
+
+.track,
+.track-inset,
+.track-overlay {
+    stroke-linecap: round;
+}
+
+.track {
+    stroke: #bbb;
+    stroke-opacity: 0.3;
+    stroke-width: 8px;
+}
+
+.track-inset {
+    stroke: transparent;
+    stroke-width: 6px;
+}
+
+.track-overlay {
+    pointer-events: stroke;
+    stroke-width: 30px;
+    stroke: transparent;
+    cursor: crosshair;
+}
+
+.slider:hover .track-inset{
+    stroke: #ddd;
+}
+
+
+.handle {
+    fill: #fff;
+    stroke: #000;
+    stroke-opacity: 0.5;
+    stroke-width: 1.25px;
+}
+
+/*Box Plot*/
+.chart-wrapper .box-plot .box {
+    fill-opacity: 0.1;
+    stroke-width: 2;
+}
+.chart-wrapper .box-plot line {
+    stroke-width: 1.5px;
+}
+.chart-wrapper .box-plot circle {
+    fill: white;
+    stroke: black;
+}
+
+.chart-wrapper .box-plot .median {
+    stroke: black;
+}
+
+.chart-wrapper .box-plot circle.median {
+    /*the script makes the circles the same color as the box, you can override this in the js*/
+    fill: white !important;
+}
+
+.chart-wrapper .box-plot .mean {
+    stroke: white;
+    stroke-dasharray: 2,1;
+    stroke-width: 1px;
+}
+
+@media (max-width:500px){
+    .chart-wrapper .box-plot circle {display: none;}
+}
+
+
+/*Violin Plot*/
+
+.chart-wrapper .violin-plot .area {
+    shape-rendering: geometricPrecision;
+    opacity: 0.4;
+}
+
+.chart-wrapper .violin-plot .line {
+    fill: none;
+    stroke-width: 2px;
+    shape-rendering: geometricPrecision;
+}
+
+
+/* prev & next buttons*/
+.prev, .next {
+    cursor: pointer;
+    transition: 0.6s ease;
+    color: white
+}
+
+.prev rect, .next rect {
+    fill: white; 
+    stroke: none;
+}
+
+.prev text, .next text {
+    fill: black; 
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.prev:hover rect{
+    fill: #ddd;
+}
+
+.prev:hover text{
+    fill: white;
+}
+
+.next:hover rect{
+    fill: #ddd;
+}
+
+.next:hover text{
+    fill: white;
+}
+
+@media only screen and (max-width: 300px) {
+    .prev, .next,.text {font-size: 11px}
+}

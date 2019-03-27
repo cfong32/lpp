@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html>
+    <head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<title>Predictive Analytics</title>
+	<script type="text/javascript" async
+		src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML">
+	</script>
+	<!-- <script type="text/javascript" src="static/MathJax/MathJax.js?config=TeX-MML-AM_CHTML"></script> -->
+	<link rel="stylesheet" type="text/css" href="distro.css">
+	<script src="static/d3.v4.min.js" charset="utf-8"></script>
+	<script src="static/jquery-2.2.4.min.js"></script>
+	<script src="distro.js" charset="utf-8"></script>
+	<script src="slider.js" charset="utf-8"></script>
+	<style> 
+	 
+	 .styled select {
+	     -webkit-appearance: button;
+	     -moz-appearance: button;
+	     -webkit-user-select: none;
+	     -moz-user-select: none;
+	     -webkit-padding-end: 20px;
+	     -moz-padding-end: 20px;
+	     -webkit-padding-start: 2px;
+	     -moz-padding-start: 2px;
+
+	     background: transparent;
+	     width: 150px;
+	     font-size: 16px;
+	     border: 2px solid #008CBA;
+	     height: 34px; 
+	 }
+
+	 .styled{
+	     margin: 2px 1px;
+	     border: 1px solid #111;
+	     border-radius: 4px;
+	     overflow: hidden;
+	     /* background: url(http://www.stackoverflow.com/favicon.ico) 96% / 20% no-repeat #fff; */
+	 }
+
+	 input[type=text] {
+	     width: 100%;
+	     padding: 2px 4px;
+	     margin: 2px 1px;
+	     box-sizing: border-box;
+	     border: 2px solid  #008CBA; /*#ccc;*/
+	     border-radius: 4px;
+	 }
+	 
+	 .button {
+	     background-color: #4CAF50; /* Green */
+	     border: none;
+	     color: white;
+	     padding: 2px 4px;
+	     text-align: center;
+	     text-decoration: none;
+	     display: inline-block;
+	     font-size: 12px;
+	     margin: 2px 1px;
+	     -webkit-transition-duration: 0.4s; /* Safari */
+	     transition-duration: 0.4s;
+	     cursor: pointer;
+	 }
+	 
+	 .button1 {
+	     background-color: #ddd; 
+	     width: 220px;
+	     height: 40px;
+	     color: black; 
+	     border: 2px solid #008CBA;
+	     border-radius: 4px;
+	 }
+	 
+	 .button1:hover {
+	     background-color: #008CBA;
+	     color: white;
+	 }
+	 
+
+	 text {
+	     font-size: 11px;
+	     fill: #000000;
+	     font-family: 'monospace';
+	     stroke-width: 0;
+	 }
+	 
+	 select.chapter-selection-in-model{
+	     width: 250px
+	 }
+	 
+	 input.student_sid {
+	     width: 120px
+	 } 
+	 
+	 #suggestion-table table {
+	     border-collapse: collapse;
+	     border: 2px black solid;
+	     font: 12px sans-serif;
+	 }
+	 
+	 #suggestion-table table td {
+	     border: 1px black solid;
+	     padding: 5px;
+	 }
+	 
+	 #suggestion-table table th {
+	     border: 1px black solid;
+	     padding: 5px;
+	 }
+
+	 table {
+	     /* border-collapse: collapse; */
+	     /* border: 2px black solid; */
+	     font: 12px sans-serif;
+	 }
+
+	 td {
+	     border: 1px black solid;
+	     padding: 5px;
+	 }
+
+	</style>
+    </head>
+    <body>
+
+	<div>
+	    <center>
+		<table border="0" >
+		    <tr>
+			<th colspan="2">
+			    <g>
+				Current Chapter: <select class="styled chapter-selection-in-model"> </select> &nbsp &nbsp 
+				Student ID: <input class="student_sid" type="text" value="">  &nbsp &nbsp
+				<!-- <button type="button" class="backend-analysis button button1" align="center">
+				     Correlation Analysis »
+				     </button> -->
+				<br>
+				<div class="chart-wrapper" id="feature-chart"  style="margin:0 auto"> </div> 
+			    </g>
+			</th>	
+		    </tr>
+		    <tr>
+			<th colspan="2" style="width:150px">
+			    <div class="legend1" align="left" style="font: 12px sans-serif;">
+				<fieldset>
+				    <legend> Caption </legend>
+				    In the above chart, the features of same color belong to a specific feature group.
+				    <font style="background: #4c89ee">Blue</font> labels the navigation behaviors.
+				    <font style="background: orange">Orange</font> labels the behaviors of loading videos and playing videos.
+				    <font style="background: green">Green</font> labels the concentration behaviors when watching videos.  
+				</fieldset>
+			    </div>
+			</th>
+		    </tr>
+		    <tr>
+			<th>
+			    <button type="button" class="backend-prediction button button1" align="center">
+				Learning Performance Prediction
+			    </button>
+			</th>
+			<th>
+			    <button type="button" class="backend-suggestion button button1" align="center">
+				Recommendation for +15% Performance in Final Exam
+			    </button>
+			</th>
+		    </tr>
+		    <tr>
+			<th colspan="2">
+			    <div class="chart-wrapper" id="target-chart" style="margin:0 auto"> </div>
+			</th>
+		    </tr>
+		    <tr>
+			<th colspan="2" style="width:150px">
+			    <div id="suggestion-table" sytle ="margin:0 auto" align="center"> </div>
+			    <br>
+			    <div class="legend2" align="left" style="font: 12px sans-serif;">
+				<fieldset>
+				    <legend> Caption </legend>
+				    For a specific chapter, each keypoint represents a group of features. For example, we use \((F_1,F_2,F_3,F_4)\) to denote the four features of navigation. For a specific student, the active level of navigation is defined as \(\sum_{i=1}^4 p_iN_i / \sum_{i=1}^4 N_i\), where \(p_i\) is student's percentile of feature \(F_i\) and \(N_i\) is the number of sutdents involved in feature \(F_i\). Thus, the active level is defined as a number in the range of \([0,1]\), and a more active student has the higher active level.
+				</fieldset>
+			    </div>
+			</th>
+		    </tr>
+		</table>
+	    </center>
+	</div>
+
+	<script type="text/javascript">
+	 var host = "/";
+	 var chart1 = null,
+	     chart2 = null,
+	     sid_selected = 362910,
+	     sid_selected_back = sid_selected,
+	     chapter_selected = 3,	     
+	     range_chapter = [1,2,3,4,5,6,7,8,9,10,11,12],
+	     features = null,
+	     featureName = null,
+	     featureDescription = null,
+	     features_index = [0,10,1,11,3,13,5,15,4,14,9,19,7,17,6,16,8,18,2,12],
+	     targetVariables = {},
+	     allFeatures = {},
+	     defaultValues = {};		 
+         
+         d3.json(host + "feature-info/", function(error, data) {
+	     data = JSON.parse(data);
+	     features = data["featureList"];
+	     featureName = data["featureName"];
+	     featureDescription = data["featureDescription"];
+	     for (var chpt of range_chapter) {
+	         allFeatures[chpt] = []
+	         for (var feature of features) {
+		     allFeatures[chpt].push(chpt+"-"+feature);
+		 }	     
+		 targetVariables[chpt] = []
+		 targetVariables[chpt].push(chpt+"-chapter_grade");
+		 if (chpt <= 11) {
+		     targetVariables[chpt].push((chpt+1)+"-chapter_grade");
+		     if (chpt < 11) 
+			 targetVariables[chpt].push("12-chapter_grade");
+		 }
+		 //targetVariable.push(chpt+"-chapter_grade");
+	     }
+	 });
+	 
+	 var barLabelFunct = function(x) {	   
+	     return featureName[x.split("-")[1]];
+	 }
+	 
+	 
+	 d3.csv(host+"coursestructure/", function(error, data) {
+	     d3.select("select.chapter-selection-in-model")
+	       .on("change", chapter_selected_in_model)
+	       .selectAll("option")
+	       .data(data).enter()
+	       .append("option")
+	       .attr("value", (d,i) => d["id"])
+	       .attr("selected", (d,i) => d["id"] == chapter_selected ? "selected" : null)
+	       .text((d,i) => d["chapter"]);
+	 })
+	 
+	 function chapter_selected_in_model() {
+	     chapter_selected = d3.select(this).property('value');
+	     chart1.updateObjs(allFeatures[chapter_selected]);
+	     chart2.updateObjs(targetVariables[chapter_selected]);
+	     for (cName of targetVariables[chapter_selected])
+		 chart2.groupObjs[cName].bar.slider.setLabel(labelFunct2(cName));
+
+	     backend_prediction();
+	     // remove_table("#suggestion-table");
+	 }
+	 
+	 $("input.student_sid").val(sid_selected);
+	 $("input.student_sid").change(update_chart1_with_sid);
+	 // d3.select("input.student_sid").attr("value", sid_selected);
+	 // d3.select("input.student_sid").on("change", update_chart1_with_sid);
+
+	 var textDecoratedFunct1 = function (x,x0,dx) {
+	     var text = "";
+	     /* if (dx > 0)
+		text += "<tspan x='0' dy='0em' fill='#19540b'>";
+		else if (dx < 0)
+		text += "<tspan x='0' dy='0em' fill='red'>";
+		else
+		text += "<tspan x='0' dy='0em' fill='#999999'>";
+		if(dx == undefined)
+		text += "-</tspan>";
+		else
+		text += formatAsFloat(dx) + "</tspan>";*/
+	     
+	     if (x > x0) 
+		 text += "<tspan x='0' dy='1.2em' fill='#19540b'>";
+	     else if (x < x0)
+		 text += "<tspan x='0' dy='1.2em' fill='red'>";
+	     else 
+		 text += "<tspan x='0' dy='1.2em' fill='#999999'>";
+	     
+	     return text + (x) 
+		  + "</tspan>" 
+		  + "<tspan x='0' dy='1.2em' fill='#999999'>(" 
+		  + (x0) 
+		  + ")</tspan>";
+	 }
+	 
+	 var textDecoratedFunct2 = function (x,x0,dx) {
+	     var text = "";	    
+	     
+	     if (x > x0) 
+		 text += "<tspan x='0' dy='0em' fill='#19540b'>";
+	     else if (x < x0)
+		 text += "<tspan x='0' dy='0em' fill='red'>";
+	     else 
+		 text += "<tspan x='0' dy='0em' fill='#999999'>";
+	     
+	     return text + (x) 
+		  + "</tspan>"
+		  + "<tspan x='0' dy='1.2em' fill='#999999'>(" 
+		  + (x0) 
+		  + ")</tspan>";
+	 }
+
+	 var tooltipsFunct1 = function(name) {
+	     var r = name.split("-");
+             return featureDescription[r[1]] + " in chapter " + r[0];
+	 }
+
+	 var tooltipsFunct2 = function(name) {
+	     var r = name.split("-");
+	     return r[1].split("_").join(" ") + " in chapter " + r[0];
+	 }
+	 
+	 var chart1_colorFunct = function (x) {
+	     if (x.includes("seq")) {
+		 return "#4c89ee";
+	     } else if (x.includes("play")) {
+		 return "orange";
+	     } else if (x.includes("load")) {
+		 return "orange";
+	     } else {
+		 return "green";
+	     }
+	 }
+	 var chart2_colorFunct = function (x) {
+	     if (x.includes("12")) {
+		 return "green";
+	     } else {
+		 return "#4c89ee";
+	     }
+	 }
+	 
+	 
+	 d3.json(host + "model/feature-distro/", function(error, data) {
+	     data = JSON.parse(data);
+	     chart1 = listDistroPlot({
+		 data: data,
+		 selector: "#feature-chart",
+		 chartSize: {width: 800, height: 270},
+		 margin: {left: 92, right: 45, top: 45, bottom: 55},
+		 xAxis: {ticks: 6},
+		 allObjs: allFeatures[chapter_selected],
+		 colors: chart1_colorFunct,
+		 tooltipFunct: tooltipsFunct1,
+		 labelFunct: barLabelFunct,
+	     });
+	     
+	     chart1.renderViolinPlot()
+		   .renderBoxPlot({reset:true, 
+				   showWhiskers:false,
+				   showOutliers:false,
+				   boxWidth:10,
+				   lineWidth:15,
+				   colors:['#000']
+		   })
+		   .renderSliderBar({
+		       nFloat: 0,
+		       textFunct: textDecoratedFunct1,
+		       ldl: 0,
+		       dl: 8
+		   });
+	     
+	     chart1.objs.svg.append("g")
+		   .attr("transform", "translate(46,19)")
+		   .append("text")
+		   .attr("text-anchor", "middle")
+		   .text('Feature Name:');
+
+	     /* chart1.objs.svg.append("g")
+		.attr("transform", "translate(46,222)")
+		.append("text")
+		.attr("text-anchor", "middle")
+		.text('Correlation:');*/
+	     
+	     chart1.objs.svg.append("g")
+		   .attr("transform", "translate(46,235)")
+		   .append("text")
+		   .attr("text-anchor", "middle")
+		   .text('New Value:');
+
+	     chart1.objs.svg.append("g")
+		   .attr("transform", "translate(46,248)")
+		   .append("text")
+		   .attr("text-anchor", "middle")
+		   .text('Original Value:');
+	     
+	     chart1.objs.svg.append("g")
+		   .attr("transform", "translate(400,263)")
+		   .append("text")
+		   .attr("text-anchor", "middle")
+		   .text('Feature Value');
+	     
+	     update_chart1_with_sid();
+	 });
+	 
+	 
+	 function update_chart1_with_sid() {
+	     sid_selected = d3.select("input.student_sid").property("value");
+	     d3.json(host + "model/feature-distro/"+sid_selected+"/", function(error, data) {
+		 if (error) {
+		     sid_selected = sid_selected_back;
+		     $("input.student_sid").val(sid_selected);
+		     return;
+		 }
+		 data = JSON.parse(data);
+		 
+		 update_chart1_with_data(data);
+		 backendRequestDefault();
+		 setTimeout(backend_prediction, 20);
+	     })
+	 }
+	 
+	 function update_chart1_with_data(data, setDefault=true) {
+	     sid_selected_back = sid_selected;
+	     for (var cName in chart1.groupObjs) {
+		 var value = 0;
+		 if(data[cName] !== undefined)
+		     value = data[cName];
+
+		 chart1.groupObjs[cName].value = value;
+		 if (setDefault)
+		     chart1.groupObjs[cName].defaultValue = value;
+		 if (chart1.groupObjs[cName].bar !== undefined) {
+		     if (setDefault)
+			 chart1.groupObjs[cName].bar.slider.setDefaultPos(value);
+		     chart1.groupObjs[cName].bar.slider.setPos(value);
+		 }
+	     }
+	 }
+	 
+	 d3.select("button.backend-analysis").on("click", backend_analysis);
+	 d3.select("button.backend-prediction").on("click", backend_prediction);
+	 d3.select("button.backend-suggestion").on("click", backend_suggestion);
+	 
+	 function backend_analysis() {
+	     var data = [];
+	     for (var cName in chart1.groupObjs) {
+		 data.push(cName + "=" +chart1.groupObjs[cName].value);
+	     }
+	     data = data.join("&");
+	     chapter_selected = d3.select("select.chapter-selection-in-model").property('value');
+	     d3.json(host + "model/request/analysis/" + data+"/", function(error, data) {
+		 data = JSON.parse(data);
+		 for (var chpt of range_chapter)
+		     for (var i =0; i < features.length; i++) {
+			 cName = chpt+"-"+features[i];
+			 var value = data[chpt-1][0][chpt-1][features_index[i]];
+			 chart1.groupObjs[cName].info = value;
+			 if (chart1.groupObjs[cName].bar !== undefined) {
+			     chart1.groupObjs[cName].bar.slider.setInfo(value);
+			 }
+		     }
+	     })
+	 }
+
+	 function labelFunct2(x) {	     
+	     var n = x.split("-")[0];
+	     if (n == 12)
+		 res =  "Final Exam"; 
+	     else if (n == chapter_selected)
+		 res = "Current Chapter";
+	     else
+		 res = "Next Chapter";
+
+	     return res;
+	 }
+	 
+	 /* function labelFunct2(x) {
+	    var n = x.split("-")[0];
+	    return n < 12 ? "Chapter "+n : "Chapter " + n + " (Exam)";
+	    }*/
+	 
+	 
+	 d3.json(host + "model/target-distro", function(error, data) {	     
+	     data = JSON.parse(data);
+	     chart2 = listDistroPlot({
+		 data: data,
+		 selector: "#target-chart",
+		 chartSize: {width: 500, height: 240},
+		 margin: {left: 78, right: 45, top: 30, bottom: 55},
+		 sliderBrush: false,
+		 xAxis: {ticks: 3},
+		 allObjs: targetVariables[chapter_selected],
+		 slideChange: false,
+		 colors: chart2_colorFunct,
+		 tooltipFunct: tooltipsFunct2,
+		 labelFunct: labelFunct2,
+	     });
+	     
+	     chart2.renderViolinPlot()
+		   .renderBoxPlot({reset:true,
+				   showWhiskers:false,
+				   showOutliers:false,
+				   boxWidth:10,
+				   lineWidth:15,
+				   colors:['#000'],
+		   })
+		   .renderSliderBar({
+		       textFunct: textDecoratedFunct2,
+		       ldl: -170,
+		       dl: 23
+		   });
+	     
+	     chart2.objs.svg.append("g")
+		   .attr("transform", "translate(38,207)")
+		   .append("text")
+		   .attr("text-anchor", "middle")
+		   .text('New Score:');
+	     
+	     chart2.objs.svg.append("g")
+		   .attr("transform", "translate(38,220)")
+		   .append("text")
+		   .attr("text-anchor", "middle")
+		   .text('Original Score:');
+	     
+	     chart2.objs.svg.append("g")
+		   .attr("transform", "translate(250,233)")
+		   .append("text")
+		   .attr("text-anchor", "middle")
+		   .text('Predicted Grade');
+	 });
+	 
+	 function backend_prediction() {
+	     var data = [];
+	     for (var cName in chart1.groupObjs) {
+		 data.push(cName + "=" +chart1.groupObjs[cName].value);
+	     }
+	     data = data.join("&");
+	     chapter_selected = d3.select("select.chapter-selection-in-model").property('value');
+	     d3.json(host + "model/request/" + data+"/", function(error, data) {
+		 data = JSON.parse(data);
+		 update_prediction(data);
+	     })
+	 }
+
+	 function update_prediction(data) {
+	     slides = targetVariables[chapter_selected];
+	     info =  data[chapter_selected-1];
+	     defaultInfo = defaultValues[chapter_selected-1];
+	     
+	     if (chapter_selected < 11) {
+		 for (var i = 0; i < slides.length; i++) {
+		     var value = Math.min(Math.max(info[i], 0),1);
+		     var defaultValue = Math.min(Math.max(defaultInfo[i], 0),1);
+		     chart2.groupObjs[slides[i]].bar.slider.setPos(value);
+		     chart2.groupObjs[slides[i]].bar.slider.setDefaultPos(defaultValue);
+		 }
+	     }
+	     else if (chapter_selected == 11) {
+		 var value0 = Math.min(Math.max(info[0], 0),1);
+		 var value1 = Math.min(Math.max(info[2], 0),1);
+		 var defaultValue0 = Math.min(Math.max(defaultInfo[0], 0),1);
+		 var defaultValue1 = Math.min(Math.max(defaultInfo[2], 0),1);
+		 chart2.groupObjs[slides[0]].bar.slider.setPos(value0);
+		 chart2.groupObjs[slides[1]].bar.slider.setPos(value1);
+		 chart2.groupObjs[slides[0]].bar.slider.setDefaultPos(defaultValue0);
+		 chart2.groupObjs[slides[1]].bar.slider.setDefaultPos(defaultValue1);
+	     } else {
+		 var value = Math.min(Math.max(info[2], 0),1);
+		 var defaultValue = Math.min(Math.max(defaultInfo[2], 0),1);
+		 chart2.groupObjs[slides[0]].bar.slider.setPos(value);
+		 chart2.groupObjs[slides[0]].bar.slider.setDefaultPos(defaultValue);
+	     }
+	 }
+
+	 function backendRequestDefault() {
+	     var data = [];
+	     for (var cName in chart1.groupObjs) {
+		 data.push(cName + "=" +chart1.groupObjs[cName].defaultValue);
+	     }
+	     data = data.join("&");
+	     chapter_selected = d3.select("select.chapter-selection-in-model").property('value');
+	     d3.json(host + "model/request/" + data+"/", function(error, data) {
+		 defaultValues = JSON.parse(data);
+	     });
+	 }
+
+	 function formatAsFloat(d, nFloat=4) {
+	     if (d % 1 !== 0) {
+		 return d3.format("."+(nFloat)+"f")(d);
+	     } else {
+		 return d3.format(".0f")(d);
+	     }
+	 }
+	 
+	 function drawtable(data_csv, id) {	     
+	     var table = d3.select(id)
+			   .append("table")
+			   .attr("width", 800);
+	     table.append("tr")
+		  .selectAll("th")
+		  .data(["Chapter", "Keypoint", "Recommendation"]).enter()
+		  .append("th")
+		  .text(d => d);
+	     
+             table.append("tbody")
+		  .selectAll("tr")
+		  .data(data_csv).enter()
+		  .append("tr")
+		  .selectAll("td")
+		  .data(d => d).enter()
+		  .append("td")
+		  .attr("rowspan", d => Array.isArray(d) ? d[1] : 1)
+		  .text(d => Array.isArray(d) ? d[0] : d)
+	 }
+
+	 function remove_table(id) {
+	     d3.select(id)
+	       .select("table")
+	       .remove();
+	 }
+	 
+	 function showTableCaption() {
+	     d3.select(".legend2")
+	       .style("display", "inline");
+	 }
+	 
+	 function hidden_tableCaption() {
+	     d3.select(".legend2")
+	       .style("display", "none");
+	 }
+	 hidden_tableCaption();
+	 
+	 function backend_suggestion() {
+	     /* var data = [];
+		for (var cName in chart1.groupObjs) {
+		data.push(cName + "=" +chart1.groupObjs[cName].value);
+		}
+		data = data.join("&");
+		chapter_selected = d3.select("select.chapter-selection-in-model").property('value');*/
+	     d3.json(host + "model/request/suggestion/" + sid_selected + "/" + chapter_selected + "/0/", function(error, data) {
+		 data = JSON.parse(data);
+		 data_X = data["X"];
+		 data_Y = data["Y"];
+		 data_S = data["S"];
+		 
+		 update_chart1_with_data(data_X, false);
+		 update_prediction(data_Y);
+		 
+		 remove_table("#suggestion-table");
+		 drawtable(data_S, "#suggestion-table");
+		 showTableCaption(".legend2");
+	     })
+	 }
+	 
+	 
+	</script>
+
+
+    </body>
+</html>

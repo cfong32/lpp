@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="distro.css">
+	<script src="static/d3.v4.min.js"></script>
+	<script src="static/jquery-2.2.4.min.js"></script>
+	<script src="scatter.js" charset="utf-8"></script>
+	<script src="histo.js" charset="utf-8"></script>
+	<style>
+
+	 .styled select {
+	     -webkit-appearance: button;
+	     -moz-appearance: button;
+	     -webkit-user-select: none;
+	     -moz-user-select: none;
+	     -webkit-padding-end: 20px;
+	     -moz-padding-end: 20px;
+	     -webkit-padding-start: 2px;
+	     -moz-padding-start: 2px;
+
+	     background: transparent;
+	     width: 150px;
+	     font-size: 16px;
+	     border: 2px solid #008CBA;
+	     height: 34px; 
+	 } 
+
+	 .styled{
+	     margin: 2px 1px;
+	     border: 1px solid #111;
+	     border-radius: 4px;
+	     overflow: hidden;
+	     /* background: url(http://www.stackoverflow.com/favicon.ico) 96% / 20% no-repeat #fff; */
+	 }
+	 
+	 input[type=text] {
+	     width: 100%;
+	     padding: 2px 4px;
+	     margin: 2px 1px;
+	     box-sizing: border-box;
+	     border: 2px solid #008CBA;
+	     border-radius: 4px;
+	 }
+	 
+	 .button {
+	     background-color: #4CAF50; /* Green */
+	     border: none;
+	     color: white;
+	     padding: 2px 4px;
+	     text-align: center;
+	     text-decoration: none;
+	     display: inline-block;
+	     font-size: 12px;
+	     margin: 2px 1px;
+	     -webkit-transition-duration: 0.4s; /* Safari */
+	     transition-duration: 0.4s;
+	     cursor: pointer;
+	 }
+	 
+	 .button1 {
+	     background-color: white; 
+	     color: black; 
+	     border: 2px solid #008CBA;
+	 }
+	 
+	 .button1:hover {
+	     background-color: #008CBA;
+	     color: white;
+	 }
+
+	 text {
+	     font-size: 11px;     
+	     fill: #000000;
+	     font-family: 'monospace';
+	     stroke-width: 0;
+	 }
+	 rect {
+	     stroke-width: 0;
+	 }
+	 .radio rect {
+	     stroke-width: 1;
+	 }	 
+	 .histo-plot rect {
+	     stroke-width: 1;
+	 }
+	 select.same-chapter-feature-x, select.same-chapter-feature-y{
+	     width: 150px
+	 }
+	 select.different-chapter-feature, select.different-chapter{
+	     width: 90px
+	 }
+	 select.personal-feature{
+	     width: 150px
+	 }
+	 input.student_sid{
+	     width: 120px
+	 }
+	 table {
+	     /* border-collapse: collapse; */
+	     /* border: 2px black solid; */
+	     font: 12px sans-serif;
+	 }
+
+	 td {
+	     border: 1px black solid;
+	     padding: 5px;
+	 }
+	</style>
+    </head>
+    <body>
+	
+	<div>
+	<center>
+	<table width="820">
+	    <tr>
+		<th colspan="2">
+		    <g>
+			Current Chapter: <select class="styled chapter-selection"> </select>
+			<br>
+			<div class="chart-plot" id="histo0" style="margin:0 auto"> </div> 
+		    </g>
+		</th>
+	    </tr>
+	    <tr>
+		<th>
+		    <g>		
+			Y: <select class="styled same-chapter-feature-y"> </select> &nbsp &nbsp &nbsp
+			X: <select class="styled same-chapter-feature-x"> </select>
+			<br>
+			<div class="chart-plot" id="scatter1" style="margin:0 auto"> </div>
+		    </g>
+		</th>
+		<th>
+		    <g>
+			Feature: <select class="styled different-chapter-feature"> </select> &nbsp &nbsp
+			Previous Chapter: <select class="styled different-chapter"> </select>
+			<br>
+			<div class="chart-plot" id="scatter2" style="margin:0 auto"> </div>
+		    </g>
+		</th>
+	    </tr>
+	    <tr>
+		<th>
+		    <div class="legend1" align="left"> </div>
+		</th>
+		<th>
+		    <div class="legend2" align="left"> </div>
+		</th>
+	    </tr>
+	    <tr>
+		<th>
+		    Monitored Feature: <select class="styled personal-feature" > </select>
+		</th>
+		<th>
+		    Student ID: <input class="student_sid" type="text" value=""> 
+		</th>
+	    </tr>
+	    <tr>
+		<th colspan="2" align="center">
+		    <g>
+			<div class="chart-plot" id="scatter3" style="margin:0 auto"> </div> 
+			<!-- <g class="featureTable"> Table of Features <br> </g> -->
+			<div class="legend3" align="left"> </div>
+		    </g>
+		</th>
+	    </tr>
+	</table>
+	</center>
+	</div>
+	
+	<script type="text/javascript"> 
+	 var host="/";
+	 var char0=null, 
+	     char1=null, 
+	     char2=null, 
+	     char3=null; 
+	 var radio=null, radio1=null, radio2=null; 
+	 var sid_selected = 362910, 
+	     sid_selected_back = sid_selected, 
+	     target_variable = "predicted_final_exam_grade", 
+	     current_target_text = "Predicted Final Exam Grade", 
+	     target_index = 7, // 3: "chapter_grade", 7: predicted_final_exam_grade 
+	     chapter_selected = 5,
+	     feature_x_chart1 = "load_video",
+	     feature_y_chart1 = "predicted_final_exam_grade",
+	     feature_chart2 = "seq_prev_post",
+	     chapter_chart2 = 4,
+	     feature_chart3 = "load_video_post";
+	 
+	 var course_struct = null,
+	     feature_list = null,
+	     feature_note = {};
+	 
+	 var personal_data = null;
+	 
+	 d3.csv(host+"coursestructure/", function(error, data) {
+	     course_struct = data;
+	     d3.select("select.chapter-selection")
+	       .on("change", chapter_selected_change)
+	       .selectAll("option")
+	       .data(data).enter()
+	       .append("option")
+	       .attr("value", (d,i) => d["id"])
+	       .attr("selected", (d,i) => d["id"] == chapter_selected ? "selected" : null)
+	       .text((d,i) => d["chapter"]);
+	     d3.select("select.different-chapter")
+	       .on("change", chapter_selected_change_chart2)
+	       .selectAll("option")
+	       .data(data.slice(0, chapter_chart2)).enter()
+	       .append("option")
+	       .attr("value", (d,i) => d["id"])
+	       .attr("selected", (d,i) => d["id"] == chapter_chart2 ? "selected" : null)
+	       .text((d,i) => d["chapter"]);
+	 });
+	 
+	 function chapter_selected_change() {
+	     chapter_selected = d3.select(this).property('value');
+	     chart0_update();
+	     for (var i = 0; i < chart0.clicks.length; i++)
+		 chart0.clicks[i] = -1;
+	     chart1.plot.updateStyle({getColor: ((d,i)=>"#ddd"), });
+	     chart1_update();
+	     chapter_chart2 = Math.max(chapter_selected - 1, 1);	    
+	     
+	     d3.select("select.different-chapter").selectAll("option").remove();
+	     d3.select("select.different-chapter")
+	       .on("change", chapter_selected_change_chart2)
+	       .selectAll("option")
+	       .data(course_struct.slice(0, chapter_chart2)).enter()
+	       .append("option")
+	       .attr("value", (d,i) => d["id"])
+	       .attr("selected", (d,i) => d["id"] == chapter_chart2 ? "selected" : null)
+	       .text((d,i) => d["chapter"]);
+	     
+	     chart2.plot.updateStyle({getColor: ((d,i)=>"#ddd"),});
+	     chart2_update();
+	 }
+	 
+	 
+	 function chapter_selected_change_chart2() {
+	     chapter_chart2 = d3.select(this).property('value');
+	     chart2_update();
+	 }
+	 
+	 d3.json(host+"featurelist/", function(error, data) {
+	     feature_list = JSON.parse(data);
+	     register_selection_change(feature_list, "select.same-chapter-feature-x", feature_x_chart1, 
+				       chart1_feature_x_selected);
+	     register_selection_change(feature_list, "select.same-chapter-feature-y", feature_y_chart1, 
+				       chart1_feature_y_selected);
+	     register_selection_change(feature_list, "select.different-chapter-feature", feature_chart2, 
+				       chart2_feature_selected);
+	     register_selection_change(feature_list, "select.personal-feature", feature_chart3, 
+				       chart3_feature_selected);
+	 })
+	 
+	 $("input.student_sid").val(sid_selected);
+	 $("input.student_sid").change(update_chart3_with_sid);
+	 // d3.select("input.student_sid").attr("value", sid_selected);
+	 // d3.select("input.student_sid").on("change", update_chart3_with_sid);
+	 
+	 function register_selection_change(data, selection, default_option, change_function) {
+	     d3.select(selection)
+	       .on("change", change_function);
+	     for (var key in data) {
+		 d3.select(selection)
+		   .append("optgroup")
+		   .attr("label", key)
+		   .attr("class", key)
+		   .selectAll("option")
+		   .data(data[key]).enter()
+		   .append("option")
+		   .attr("value", (d,i) => d)
+		   .attr("selected", (d,i) => d == default_option ? "selected" : null)
+		   .text((d,i) => nameFunct(d));
+	     }
+	 }
+	 
+	 function chart1_feature_x_selected() {
+	     feature_x_chart1 = d3.select(this).property('value');
+	     chart1_update();
+	 }
+	 
+	 function chart1_feature_y_selected() {
+	     feature_y_chart1 = d3.select(this).property('value');
+	     chart1_update();
+	 }
+	 
+	 function chart2_feature_selected() {
+	     feature_chart2 = d3.select(this).property('value');
+	     chart2_update();
+	 }
+
+	 function chart3_feature_selected() {
+	     feature_chart3 = d3.select(this).property('value');
+	     chart3_update();
+	 }
+	 
+	 function update_chart3_with_sid() {
+	     sid_selected = d3.select(this).property("value");
+	     chart3_update();
+	 }
+	 
+	 d3.json(host + "hist/chapter-"+chapter_selected+"-"+ target_variable +"/", function(error, data) {
+	     data = JSON.parse(data);
+	     chart0 = histoPlot({
+		 data: data,
+		 xName: "Chapter Grade (Percent)",
+		 yName: "Number of Students",
+		 getWidth: (d => 5),
+		 getX: (d => +d[0]+2.5),
+		 getY: (d => +d[1]),
+		 xAxis: {range: [0, 105]},
+		 yAxis: {lowerLimit: 0},
+		 selector: "#histo0",
+		 chartSize: {width: 800, height: 250},
+		 margin: {left: 60, right: 10, top: 10, bottom: 40},
+		 event: clickEventHisto
+	     });
+	     chart0.renderPlot();
+
+	     
+	     /* radio = chart0.objs.mainDiv.append('div').attr('class', "radio")
+		.style("left", "75px")
+		.style("top", "20px");
+		
+		radio1 = radio.append("input")
+		.attr("type", "button")
+		.attr("width", 160)
+		.attr("height", 16)
+		.attr("name", "Predicted Final Exam Grade")
+		.attr("value", "Predicted Final Exam Grade")
+		.on("click", chart0_change_target);
+
+		radio2 = radio.append("input")
+		.attr("type", "button")
+		.attr("width", 160)
+		.attr("height", 16)
+		.attr("name", "Current Chapter Grade")
+		.attr("value", "Current Chapter Grade")
+		.on("click", chart0_change_target);
+	      */
+	     
+	     
+	     var labels = [
+		 ["(75, 20)", "Predicted Final Exam Grade", 7],
+		 ["(75, 45)", "Current Chapter Grade", 4],
+	     ];
+
+	     radios = chart0.objs.svg.append("g")
+			    .attr("class", "radios")
+			    .selectAll("g")
+			    .data(labels)
+	     		    .enter()
+			    .append("g")
+			    .attr("class", (d,i)=> "radioButton"+i)
+			    .attr("transform", d=>"translate"+d[0])
+			    .on("click", chart0_change_target)
+			    .on("mouseover", function() {
+				d3.select(this).select("rect").style("fill", "#008CBA");
+				d3.select(this).select("text").style("fill", "white");
+			    })
+			    .on("mouseout", radioHavor);
+	     
+	     function radioHavor() {
+		 if(target_index == 7) {
+		     radio1.select("rect").style("fill", "#008CBA");
+		     radio1.select("rect").style("stroke", "#008CBA");
+		     radio1.select("text").style("fill", "white");		     
+		     radio2.select("rect").style("fill", "#ddd");
+		     radio2.select("rect").style("stroke", "#bbb");
+		     radio2.select("text").style("fill", "black");
+		 } else {
+		     radio2.select("rect").style("fill", "#008CBA");
+		     radio2.select("rect").style("stroke", "#008CBA");
+		     radio2.select("text").style("fill", "white");
+		     radio1.select("rect").style("fill", "#ddd");
+		     radio1.select("rect").style("stroke", "#bbb");
+		     radio1.select("text").style("fill", "black");
+		 }
+	     }
+
+	     
+	     radios.append("rect")
+		   .attr("class", "radioRect")
+		   .attr("width", 190)
+		   .attr("height", 20)
+		   .attr("rx", 2)
+		   .attr("ry", 2)
+		   .style("fill", "#ddd")
+	     	   .style("stroke", "#bbb")
+		   .style("stroke-width", 2)
+		   .style("cursor", "pointer");
+	     
+	     radios.append("text")
+		   .attr("class", "radioText")
+		   .attr("text-anchor", "middle")
+		   .attr("x", 95)
+		   .attr("y", 10)
+		   .attr("text-anchor", "middle")
+		   .attr("dominant-baseline", "central")
+		   .style("fill", "black")
+		   .text(d=>d[1])
+		   .style("cursor", "pointer");
+	     
+	     radio1 = chart0.objs.svg.select("g.radios").select("g.radioButton0");
+	     radio1.select("rect").style("stroke", "#008CBA");
+	     radio1.select("rect").style("fill", "#008CBA");
+	     radio1.select("text").style("fill", "white");
+	     radio2 = chart0.objs.svg.select("g.radios").select("g.radioButton1");
+	 });
+
+	 function chart0_change_target() {
+	     var text = d3.select(this).select("text").text();
+	     if (text !== current_target_text) {
+		 if( text == "Predicted Final Exam Grade") {
+		     current_target_text = text;
+		     target_variable = "predicted_final_exam_grade";
+		     target_index = 7;
+		     radio1.select("rect").style("fill", "#008CBA");
+		     radio1.select("rect").style("stroke", "#008CBA");
+		     radio1.select("text").style("fill", "white");		     
+		     radio2.select("rect").style("fill", "#ddd");
+		     radio2.select("rect").style("stroke", "#bbb");
+		     radio2.select("text").style("fill", "black");
+		 } else if (text == "Current Chapter Grade") {
+		     current_target_text = text;
+		     target_variable = "chapter_grade";
+		     target_index = 4;
+		     radio2.select("rect").style("fill", "#008CBA");
+		     radio2.select("rect").style("stroke", "#008CBA");
+		     radio2.select("text").style("fill", "white");
+		     radio1.select("rect").style("fill", "#ddd");
+		     radio1.select("rect").style("stroke", "#bbb");
+		     radio1.select("text").style("fill", "black");
+		 }
+		 chart0_update();
+		 for (var i = 0; i < chart0.clicks.length; i++)
+		     chart0.clicks[i] = -1;
+		 chart1.plot.updateStyle({getColor: ((d,i)=>"#ddd"), });
+		 chart2.plot.updateStyle({getColor: ((d,i)=>"#ddd"), });
+	     }
+	     
+	 }
+
+	 function chart0_update() {
+	     d3.json(host + "hist/chapter-"+chapter_selected+"-"+ target_variable  +"/", function(error, data) {
+		 data = JSON.parse(data);
+		 chart0.plot.updateData({
+		     data: data,
+		     getX: (d => +d[0]+2.5),
+		     getY: (d => +d[1]),
+		     xAxis: {range: [0, 105]},
+		     yAxis: {lowerLimit: 0}
+		 })
+	     });
+	 }
+	 
+	 
+	 var getTargetVal = function (d, i) {
+	     return d[target_index]*100;
+	 };
+	 
+	 
+	 var clickEventHisto = function(values, colors) {
+	     var cState = 0
+	     for (var i = 0; i < values.length; i++) {
+		 if (values[i] !== undefined)
+		     cState = 1		 
+	     }
+
+	     if (cState == 1) {			  
+		 var colorFunct = function (d, i) {
+		     var val = getTargetVal(d,i);
+		     for (var i = 0; i < values.length; i++) {
+			 if (values[i] && (val >= values[i][0]) && (val < values[i][1])) {
+			     return colors[i];
+			 }
+		     }
+		     return "#ddd";
+		 };
+		 
+		 /* var opacityFunct = function (d, i) {
+		    var val = getTargetVal(d,i);
+		    for (var i = 0; i < values.length; i++) {
+		    if (values[i] && (val > values[i][0]) && (val <= values[i][1])) {
+		    return 0.75;
+		    }
+		    }
+		    return 0.05;
+		    };*/
+	     } else {
+		 var colorFunct = ((d,i) => "#ddd");
+		 // var opacityFunct = ((d,i) => 0.75);
+	     }
+	     
+	     chart1.plot.updateStyle({getColor: colorFunct,});
+	     chart2.plot.updateStyle({getColor: colorFunct,});
+
+	     
+	 }
+	 
+	 
+	 var legendFunct = function (x, y, datum) {
+	     legend = "<fieldset> <legend> ID: " + datum[0] + "</legend>";
+	     legend += "X: " + (x)+ "<br\> Y: " + (y);
+	     legend += "</fieldset>";
+	     return legend;
+	 }
+
+	 d3.json(host + "feature/chapter-"+chapter_selected+"-"+feature_x_chart1+"/chapter-"+chapter_selected+"-"+feature_y_chart1+"/", function(error, data) {
+	     data = JSON.parse(data);	     
+	     chart1 = scatterPlot({
+		 data: data,
+		 xName: nameFunct(feature_x_chart1) + " in Chapter " + chapter_selected,
+		 yName: nameFunct(feature_y_chart1) + " in Chapter " + chapter_selected,
+		 getX: (d => d[1]),
+		 getY: (d => d[2]),
+		 yAxis: {range: [0,1], zoomY: true, ticks: 5},
+		 selector: "#scatter1",
+		 brush: true,
+		 chartSize: {width: 400, height: 250},
+		 margin: {left: 50, right: 10, top: 10, bottom: 40},
+		 clickEvent: chart1_clicked,
+		 mouseOverEvent: chart1_mouseOver,
+		 mouseOutEvent: chart1_mouseOut,
+		 hoverInfoFormatter: legendFunct,
+	     });
+	     chart1.renderPlot({getColor: (()=>"#ddd"), getOpacity: (()=>0.75)});
+
+	     function chart1_mouseOver(datum, style) {
+		 /* chart2.plot.g.selectAll("circle")
+		    .filter((d,i) => d[0] == datum[0])
+		    .attr("r", (d, i) => 8)
+		    .style("fill", "purple")
+		    .style("opacity", 0.75);*/
+		 
+		 var selected = chart2.plot.g.selectAll("circle")
+				      .filter((d,i) => d[0] == datum[0])
+		 selected = selected["_groups"][0][0];
+		 var datum = d3.select(selected).datum();
+		 chart2.plot.g.append("circle")
+		       .attr("class", "selected-point")
+		       .attr("cx", chart2.xScale(chart2.getX(datum)))
+		       .attr("cy", chart2.yScale(chart2.getY(datum)))
+		       .attr("r", 8)
+		       .style("fill", "purple")
+		       .style("opacity", 0.75);
+	     }
+	     
+	     function chart1_mouseOut(datum) {
+		 /* chart2.plot.g.selectAll("circle")
+		    .filter((d,i) => d[0] == datum[0])
+		    .attr("r", (d, i) => chart1.plot.options.getSize(d,i))
+		    .style("fill", (d, i) => chart1.plot.options.getColor(d,i))
+		    .style("opacity",  (d, i) => chart1.plot.options.getOpacity(d,i));*/
+
+		 chart2.plot.g.select("circle.selected-point")
+		       .remove();
+	     }
+	     
+	     function chart1_clicked(datum, index_datum) {
+		 sid_selected = datum[0];
+		 // d3.select("input.student_sid").attr("value", sid_selected);
+		 $("input.student_sid").val(sid_selected);
+		 
+		 feature_chart3 = feature_y_chart1;
+		 
+		 d3.select("select.personal-feature").selectAll("optgroup").remove();
+		 register_selection_change(feature_list, "select.personal-feature", feature_chart3, 
+					   chart3_feature_selected);
+
+		 chart3_update();
+	     }
+	 });
+
+	 function chart1_update() {
+	     d3.json(host + "feature/chapter-"+chapter_selected+"-"+feature_x_chart1+"/chapter-"+chapter_selected+"-"+feature_y_chart1+"/", function(error, data) {
+		 data = JSON.parse(data);
+		 
+		 var options = {
+		     data: data,
+		     getX: (d => d[1]),
+		     getY: (d => d[2])
+		 };
+		 
+		 if (feature_x_chart1.includes("grade"))
+		     options["xAxis"] = {range: [0,1]}
+
+		 if (feature_y_chart1.includes("grade"))
+		     options["yAxis"] = {range: [0,1]}
+		 
+		 chart1.plot.updateData(options)
+		 chart1.updateLabel({
+		     xName: nameFunct(feature_x_chart1) + " in Chapter " + chapter_selected,
+		     yName: nameFunct(feature_y_chart1) + " in Chapter " + chapter_selected
+		 });
+
+		 addLegend1(".legend1", feature_note[nameFunct(feature_x_chart1)], feature_note[nameFunct(feature_y_chart1)]);
+
+	     })
+	 }
+	 
+	 
+	 d3.json(host + "feature/chapter-"+chapter_chart2+"-"+feature_chart2+"/chapter-"+chapter_selected+"-"+feature_chart2+"/", function(error, data) {
+	     data = JSON.parse(data);
+	     chart2 = scatterPlot({
+		 data: data,
+		 xName: nameFunct(feature_chart2) + " in Chapter " + chapter_chart2,
+		 yName: nameFunct(feature_chart2) + " in Chapter " + chapter_selected,
+		 getX: (d => d[1]),
+		 getY: (d => d[2]),
+		 selector: "#scatter2",
+		 brush: true,
+		 chartSize: {width: 400, height: 250},
+		 margin: {left: 50, right: 10, top: 10, bottom: 40},
+		 clickEvent: chart2_clicked,
+		 mouseOverEvent: chart2_mouseOver,
+		 mouseOutEvent: chart2_mouseOut,
+		 hoverInfoFormatter: legendFunct,
+	     });
+	     chart2.renderPlot({getColor: (() => "#ddd"), getOpacity: (()=>0.75)});
+	     
+	     function chart2_mouseOver(datum, style) {
+		 /* chart1.plot.g.selectAll("circle")
+		    .filter((d,i) => d[0] == datum[0])
+		    .attr("r", (d, i) => 8)
+		    .style("fill", "purple")
+		    .style("opacity", 0.75);*/
+
+		 var selected = chart1.plot.g.selectAll("circle")
+				      .filter((d,i) => d[0] == datum[0])
+		 selected = selected["_groups"][0][0];
+		 var datum = d3.select(selected).datum();
+		 chart1.plot.g.append("circle")
+		       .attr("class", "selected-point")
+		       .attr("cx", chart1.xScale(chart1.getX(datum)))
+		       .attr("cy", chart1.yScale(chart1.getY(datum)))
+		       .attr("r", 8)
+		       .style("fill", "purple")
+		       .style("opacity", 0.75);
+		 
+	     }
+	     
+	     function chart2_mouseOut(datum) {
+		 /* chart1.plot.g.selectAll("circle")
+		    .filter((d,i) => d[0] == datum[0])
+		    .attr("r", (d, i) => chart1.plot.options.getSize(d,i))
+		    .style("fill", (d, i) => chart1.plot.options.getColor(d,i))
+		    .style("opacity",  (d, i) => chart1.plot.options.getOpacity(d,i));*/
+
+		 chart1.plot.g.select("circle.selected-point").remove()
+	     }
+	     
+	     function chart2_clicked(datum, index_datum) {
+		 sid_selected = datum[0];
+		 // d3.select("input.student_sid").attr("value", sid_selected);
+		 $("input.student_sid").val(sid_selected);
+		 
+		 feature_chart3 = feature_chart2;
+
+		 d3.select("select.personal-feature").selectAll("optgroup").remove();
+		 register_selection_change(feature_list, "select.personal-feature", feature_chart3, 
+					   chart3_feature_selected);
+		 
+		 chart3_update();
+	     }
+	 });		 
+	 
+	 function chart2_update() {
+	     d3.json(host + "feature/chapter-"+chapter_chart2+"-"+feature_chart2+"/chapter-"+chapter_selected+"-"+feature_chart2+"/", function(error, data) {
+		 data = JSON.parse(data);
+
+		 var options = {
+		     data: data,
+		     getX: (d => d[1]),
+		     getY: (d => d[2])
+		 };
+
+		 if (feature_chart2.includes("grade")) {
+		     options["xAxis"] = {range: [0.0, 1.0]};
+		 }
+		 if (feature_chart2.includes("grade"))
+		     options["yAxis"] = {range: [0.0, 1.0]};
+		 
+		 chart2.plot.updateData(options)
+		 chart2.updateLabel({
+		     xName: nameFunct(feature_chart2) + " in Chapter " + chapter_chart2,
+		     yName: nameFunct(feature_chart2) + " in Chapter " + chapter_selected,
+		 });
+		 addLegend2(".legend2", feature_note[nameFunct(feature_chart2)]);
+	     });
+	 }
+	 
+	 d3.json(host + "info/sid-" + sid_selected, function(error, data) {
+	     data = parseJSON(data);
+	     personal_data = data;
+	     chart3 = scatterPlot({
+		 data: personal_data[feature_chart3],
+		 xName: "Current Chapter",
+		 yName: nameFunct(feature_chart3),
+		 getX: (d => +d[0]),
+		 getY: (d => +d[1]),
+		 xAxis: {zoomX:false, range: [0,12]},
+		 yAxis: {lowerLimit: 0, ticks: 5, zoomY: false},
+		 brush: false,
+		 chartSize: {width: 800, height: 250},
+		 margin: {left: 50, right: 10, top: 10, bottom: 40},
+		 selector: "#scatter3",
+	     });
+	     chart3.renderPlot({
+		 getColor: (d => "#5A9BD5"),
+		 getSize: (() => 5)
+	     });
+	 })
+	 
+	 function chart3_update() {
+	     function aux() {
+		 var options = {
+		     data: personal_data[feature_chart3],
+		     getX: (d => +d[0]),
+		     getY: (d => +d[1]),
+		     xAxis: {range: [0, 12]},
+		     yAxis: {lowerLimit: 0}
+		 };
+		 
+		 if (feature_chart3.includes("grade")) {
+		     options["yAxis"] = {range: [0,1]};	 
+		 }
+		 
+		 chart3.plot.updateData(options);
+		 chart3.updateLabel({
+		     yName: nameFunct(feature_chart3)
+		 });
+
+		 addLegend3(".legend3", feature_note[nameFunct(feature_chart3)]);
+	     }
+	     
+	     if (sid_selected !== sid_selected_back) {
+		 d3.json(host + "info/sid-" + sid_selected, function(error, data) {
+		     if (error) {
+			 sid_selected = sid_selected_back;
+			 //d3.select("input.student_sid").attr("value", sid_selected); //not work
+			 $("input.student_sid").val(sid_selected);
+			 return;		     
+		     }
+		     
+		     sid_selected_back = sid_selected;
+		     personal_data = parseJSON(data);
+		     aux();
+		 });
+	     } else {
+		 aux();
+	     }  
+	 }	 
+	 
+	 function nameFunct(x) {
+	     return x.split("_").join("-");
+	 }
+
+	 function parseJSON(data) {
+	     return JSON.parse(data.replace(/\bNaN\b/g, '"***NaN***"'), function(key, value){
+		 return value === "***NaN***" ? null : value;
+	     });
+	 }
+
+	 /* function tableDraw(data, id) {
+	    d3.select(id)
+	  *       .append("table")
+	  *       .selectAll("tr")
+	  *       .data(data).enter()
+	  *       .append("tr")
+	  *       .selectAll("td")
+	  *       .data(function(d) {return d}).enter()
+	  *       .append("td")
+	  *       .text(function(d) { return d})
+	    }*/	 
+
+
+	 function addLegend1(selector, x, y) {
+	     d3.select(selector).select("text").remove();
+	     legend = "<fieldset> <legend> Caption </legend>";
+	     legend += "Label Y: " + (y)+ "<br\> Label X: " + (x);
+	     legend += "</fieldset>";
+	     d3.select(selector).append("text").html(legend);
+	 }
+
+	 function addLegend2(selector, x) {
+	     d3.select(selector).select("text").remove();
+	     legend = "<fieldset> <legend> Caption </legend>";
+	     legend += "Label Y & X: " + (x);
+	     legend += "</fieldset>";
+	     d3.select(selector).append("text").html(legend);
+	 }
+
+	 function addLegend3(selector, x) {
+	     d3.select(selector).select("text").remove();
+	     legend = "<fieldset> <legend> Caption </legend>";
+	     legend += "Label Y: " + (x);
+	     legend += "</fieldset>";
+	     d3.select(selector).append("text").html(legend);
+	 }
+	 
+	 d3.csv(host + "feature-detail/", function(error, data) {
+	     k1 = "FEATURE NAME";
+	     k2 = "SPECIFICATION";
+	     for(var i=0; i<data.length; i++) {
+		 feature_note[data[i][k1]] = data[i][k2];
+	     }
+
+	     addLegend1(".legend1", feature_note[nameFunct(feature_x_chart1)], feature_note[nameFunct(feature_y_chart1)]);
+	     addLegend2(".legend2", feature_note[nameFunct(feature_chart2)]);
+	     addLegend3(".legend3", feature_note[nameFunct(feature_chart3)]);
+	     // tableDraw(data_tab, "g.featureTable")
+	 });
+
+	</script>
+	
+    </body>
+</html>

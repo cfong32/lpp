@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+	<title>Learning Analytics Demo</title>
+	<link rel="stylesheet" href="style.css">
+	<script src="static/jquery-2.2.4.min.js"></script>
+	<script>
+	 function resizeIframe(obj) {
+	     obj.style.height = obj.contentWindow.document.body.scrollHeight + 'px';
+	 }
+	</script>
+    </head>
+    <body>	
+	<script type="text/javascript">
+	 $(document).ready(function(){
+	     var btn = 1;
+	     $(".btn1").hover(
+		 function() {
+		     $(this).css("background-color", "#008CBA");
+		     $(this).css("color", "white");
+		 },
+		 function() { 
+		     /* if(btn == 1) {
+			$(this).css("background-color", "#ddd");
+			$(this).css("border-color", "#008CBA");
+			$(this).css("color", "#008CBA");
+			} else {
+			$(this).css("background-color", "#ddd");
+			$(this).css("color", "black");
+			}*/
+		     if(btn == 1) {
+			 $(this).css("background-color", "#008CBA");
+			 $(this).css("border-color", "#008CBA");
+			 $(this).css("color", "white");
+		     } else {
+			 $(this).css("background-color", "#ddd");
+			 $(this).css("color", "black");
+		     }
+		 }
+	     );
+	     
+	     $(".btn2").hover(
+		 function() {
+		     $(this).css("background-color", "#008CBA");
+		     $(this).css("color", "white");
+		 },
+		 function() {
+		     /* if(btn == 2) {
+			$(this).css("background-color", "#ddd");
+			$(this).css("border-color", "#008CBA");
+			$(this).css("color", "#008CBA");
+			} else {
+			$(this).css("background-color", "#ddd");
+			$(this).css("color", "black");
+			}*/
+		     if(btn == 2) {
+			 $(this).css("background-color", "#008CBA");
+			 $(this).css("border-color", "#008CBA");
+			 $(this).css("color", "white");
+		     } else {
+			 $(this).css("background-color", "#ddd");
+			 $(this).css("color", "black");
+		     }
+		 }
+	     );
+	     
+	     $(".btn1").click(function(){
+		 btn = 1;
+		 /* $(".btn2").css("color", "black");
+		    $(".btn2").css("border-color", "#ddd");*/
+		 $(".btn2").css("color", "black");
+		 $(".btn2").css("background-color", "#ddd");
+		 $(".btn2").css("border-color", "#bbb");
+		 $(".btn1").css("border-color", "#008CBA");
+		 $(".demo2").css("display", "none");
+		 $(".demo1").css("display", "block");
+	     });
+	     
+	     $(".btn2").click(function(){
+		 btn = 2;
+		 /* $(".btn1").css("color", "black");			   
+		    $(".btn1").css("border-color", "#ddd");*/
+		 $(".btn1").css("color", "black");	
+		 $(".btn1").css("background-color", "#ddd");		 
+		 $(".btn1").css("border-color", "#bbb");
+		 $(".btn2").css("border-color", "#008CBA");
+		 $(".demo1").css("display", "none");
+		 $(".demo2").css("display", "block");
+	     });
+	 });
+	 
+	 function resizeIframe(obj) {
+	     obj.style.height = obj.contentWindow.document.body.scrollHeight + 'px';
+	 }
+	</script>
+	<g>
+	    <button type="button" class="button button0 btn1" style="background-color:#008CBA; border-color:#008CBA; color:white;" align="center"> Visual Analytics Tool </button>
+	    <button type="button" class="button button0 btn2" align="center"> Predictive Analytics </button>
+	</g>
+	<br>
+	<g class="demo1">
+	    <iframe src="demo_grade.html" width="100%" frameborder="1" height="1000" align="center"> </iframe>
+	</g>
+	<g class="demo2">
+	    <iframe src="demo_distro.html" width="100%" frameborder="1" height="1400" align="center"> </iframe>
+	</g>	
+	
+    </body>
+</html>
+
+
